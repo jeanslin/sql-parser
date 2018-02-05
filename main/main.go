@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
-	sqlparser "sql-parser"
+
+	sqlparser "github.com/PGV65/sql-parser"
 )
 
 func main() {

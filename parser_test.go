@@ -10,7 +10,7 @@ TestNewParserError - unit test for constructor parser error
 */
 func TestNewParserError(t *testing.T) {
 	var err error
-	err = NewParserError(1, "error read file")
+	err = newParserError(1, "error read file")
 	if err != nil {
 		if e, ok := err.(Error); !ok {
 			t.Error("Error: error type is not valid!", e)
@@ -23,7 +23,7 @@ TestParseFromFile - unit test for parsing sql requests from file
 */
 func TestError(t *testing.T) {
 	var err error
-	err = NewParserError(1, "error read file")
+	err = newParserError(1, "error read file")
 	if err != nil {
 		if e, ok := err.(Error); ok {
 			if e.Error() == "" {

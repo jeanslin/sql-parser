@@ -22,7 +22,7 @@ type Error struct {
 	Message string
 }
 
-func NewParserError(code int, message string) Error {
+func newParserError(code int, message string) Error {
 	return Error{
 		Type:    code,
 		Message: message,
@@ -41,18 +41,18 @@ func ParseFromFile(filename string) ([]string, error) {
 	// var buf string
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, NewParserError(ErrorOpenFile, err.Error())
+		return nil, newParserError(ErrorOpenFile, err.Error())
 	}
 	defer file.Close()
 
 	for {
-		textByte := make([]byte, 1<<4)
+		textByte := make([]byte, 1<<20)
 		length, err := file.Read(textByte)
 		if length == 0 {
 			break
 		}
 		if err != nil {
-			return nil, NewParserError(ErrorReadFile, err.Error())
+			return nil, newParserError(ErrorReadFile, err.Error())
 		}
 		text := string(textByte)
 		reqs = queryBuilder(text, length)
@@ -81,7 +81,7 @@ func queryBuilder(text string, length int) []string {
 		if strings.EqualFold(char, "-") {
 			if firstMinus {
 				isComment = true
-				req = req[:len(req)-1]
+				req = deleteLastSymbol(req)
 				firstMinus = false
 			} else {
 				firstMinus = true
@@ -92,7 +92,7 @@ func queryBuilder(text string, length int) []string {
 		if strings.EqualFold(char, "*") {
 			if firstSlash {
 				isMultiComment = true
-				req = req[:len(req)-1]
+				req = deleteLastSymbol(req)
 				firstSlash = false
 			} else {
 				firstStar = true
@@ -159,9 +159,17 @@ func choreRequests(input []string) (requests []string) {
 				item = strings.Replace(item, " ", "", 1)
 			}
 		}
-		if len(item) > 2 {
+		if len(item) > 5 {
 			requests = append(requests, item)
 		}
 	}
 	return
+}
+
+func deleteLastSymbol(str string) string {
+	if len(str) <= 1 {
+		return ""
+	}
+	s := str[:len(str)-1]
+	return s
 }
