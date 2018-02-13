@@ -4,7 +4,7 @@
 xt; mul
 i\nline com\nme
 ;nt\n\n\n
-*/;;
+*/
 --gfbgdfgfdgfd
 INSERT INTO mar/*COMMENT  IS  HERE TOO*/ket_data.instruments  
 (id, symbol, name, lot_size, lot_step,

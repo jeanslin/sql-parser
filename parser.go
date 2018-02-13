@@ -52,13 +52,11 @@ func ParseFromFile(filename string) ([]string, error) {
 			break
 		}
 		if err != nil {
-			return nil, newParserError(ErrorReadFile, err.Error())
+			return result, newParserError(ErrorReadFile, err.Error())
 		}
 		text := string(textByte)
 		reqs = queryBuilder(text, length)
-		for _, item := range reqs {
-			result = append(result, item)
-		}
+		result = append(result, reqs...)
 
 	}
 	return choreRequests(result), nil
@@ -94,14 +92,12 @@ func queryBuilder(text string, length int) []string {
 				isMultiComment = true
 				req = deleteLastSymbol(req)
 				firstSlash = false
-			} else {
-				firstStar = true
 			}
+			firstStar = true
 		}
 		if strings.EqualFold(char, "#") {
 			isComment = true
 		}
-
 		// Write char into req, if string is not commented
 		if !isComment && !isMultiComment {
 			// Find quotes
@@ -121,11 +117,11 @@ func queryBuilder(text string, length int) []string {
 			if firstStar {
 				isMultiComment = false
 				firstStar = false
-			} else {
-				firstSlash = true
 			}
+			firstSlash = true
 		}
-		if isComment && strings.EqualFold(char, "\n") {
+
+		if isComment && char == "\n" {
 			isComment = false
 		}
 		// Split request, if current char == ";" and no open quotes, no comments
