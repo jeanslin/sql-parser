@@ -144,6 +144,7 @@ func choreRequests(input []string) (requests []string) {
 	for _, item := range input {
 		item = strings.Replace(item, "\n\n", "\n", -1)
 		item = strings.Replace(item, "\n", " ", -1)
+		item = strings.Replace(item, "\r", " ", -1)
 		item = strings.Replace(item, "\t", " ", -1)
 
 		for strings.Index(item, "  ") != -1 {
