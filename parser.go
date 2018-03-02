@@ -4,6 +4,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 const (
@@ -16,6 +17,10 @@ var (
 	isComment, isMultiComment, firstMinus, firstSlash, firstStar bool
 	buf                                                          string
 )
+
+type Parser struct {
+	sync.Mutex
+}
 
 type Error struct {
 	Type    int
@@ -36,7 +41,9 @@ func (e Error) Error() string {
 /*
 ParseFromFile - parse SQL-file and get requests type []string
 */
-func ParseFromFile(filename string) ([]string, error) {
+func (p *Parser) ParseFromFile(filename string) ([]string, error) {
+	p.Lock()
+	defer p.Unlock()
 	var result, reqs []string
 	// var buf string
 	file, err := os.Open(filename)
@@ -59,14 +66,18 @@ func ParseFromFile(filename string) ([]string, error) {
 		result = append(result, reqs...)
 
 	}
+	cleanGlobals()
 	return choreRequests(result), nil
 }
 
 /*
 ParseFromString - parse SQL-string and get requests type []string
 */
-func ParseFromString(requests string) ([]string, error) {
+func (p *Parser) ParseFromString(requests string) ([]string, error) {
+	p.Lock()
+	defer p.Unlock()
 	result := queryBuilder(requests, len(requests))
+	cleanGlobals()
 	return choreRequests(result), nil
 }
 
@@ -170,4 +181,10 @@ func deleteLastSymbol(str string) string {
 	}
 	s := str[:len(str)-1]
 	return s
+}
+
+func cleanGlobals() {
+	quote1, quote2, quote3 = 0, 0, 0
+	isComment, isMultiComment, firstMinus, firstSlash, firstStar = false, false, false, false, false
+	buf = ""
 }
