@@ -1,11 +1,12 @@
 package sqlparser
 
 import (
+	"bufio"
+	"io"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
-	"unicode/utf8"
 )
 
 const (
@@ -85,9 +86,16 @@ func (p *Parser) ParseFromString(requests string) ([]string, error) {
 func queryBuilder(text string, length int) []string {
 	var requests []string
 	var req string
-	l := utf8.RuneCountInString(text)
-	for i := 0; i < l; i++ {
-		char := string([]rune(text)[i])
+	r := bufio.NewReader(strings.NewReader(text[:length]))
+	for {
+		var c rune
+		var err error
+		if c, _, err = r.ReadRune(); err != nil {
+			if err == io.EOF {
+				break
+			}
+		}
+		char := string(c)
 		// Check beginning the comment
 		if strings.EqualFold(char, "-") {
 			if quote1%2 == 0 && quote2%2 == 0 && quote3%2 == 0 {

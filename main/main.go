@@ -9,8 +9,8 @@ import (
 
 func main() {
 	var parser sqlparser.Parser
-	requests, err := parser.ParseFromString(`INSERT INTO instruments (name, lot_size, id) VALUES ("SPA35#", 0, 111);`)
-	// requests, err := parser.ParseFromFile("../test/test.sql")
+	// requests, err := parser.ParseFromString(`INSERT INTO instruments (name, lot_size, id) VALUES ("SPA35#", 0, 111);`)
+	requests, err := parser.ParseFromFile("../test/test.sql")
 	if err != nil {
 		log.Fatal(err)
 	}
