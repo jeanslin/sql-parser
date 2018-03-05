@@ -158,6 +158,17 @@ func TestParseFromString(t *testing.T) {
 		}
 	}
 
+	result7, err := parser.ParseFromString(`INSERT INTO instruments (name, lot_size, id) VALUES ("SPA35АБВВВВ", 0, 111);`)
+	if err != nil {
+		if e, ok := err.(Error); ok {
+			if e.Type != ErrorOpenFile && e.Type != ErrorReadFile {
+				t.Error("Error: ", e.Message)
+			}
+		} else {
+			t.Error("Error: error type is not valid!")
+		}
+	}
+
 	if len(result) == 0 {
 		t.Error("Error: Result is empty!")
 	}
@@ -208,6 +219,14 @@ func TestParseFromString(t *testing.T) {
 	if result6[0] != `INSERT INTO instruments (name, lot_size, id) VALUES (, 0, 111);` {
 		t.Log(result6[0])
 		t.Error("Wrong result6[0]!")
+	}
+
+	if len(result7) == 0 {
+		t.Error("Error: Result is empty!")
+	}
+	if result7[0] != `INSERT INTO instruments (name, lot_size, id) VALUES ("SPA35АБВВВВ", 0, 111);` {
+		t.Log(result7[0])
+		t.Error("Wrong result7[0]!")
 	}
 }
 
