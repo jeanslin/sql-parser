@@ -39,19 +39,20 @@ func TestError(t *testing.T) {
 TestParseFromFile - unit test for parsing sql requests from file
 */
 func TestParseFromFile(t *testing.T) {
-	result, err := ParseFromFile("asdasdas")
+	var parser Parser
+	result, err := parser.ParseFromFile("asdasdas")
 	if e, ok := err.(Error); ok {
 		if result != nil || e.Type != 1 {
 			t.Error("Error: Invalid result with incorrect file!")
 		}
 	}
-	result, err = ParseFromFile("asdasdas")
+	result, err = parser.ParseFromFile("asdasdas")
 	if e, ok := err.(Error); ok {
 		if result != nil || e.Type != 1 {
 			t.Error("Error: Invalid result with incorrect file!")
 		}
 	}
-	result, err = ParseFromFile("test/test.sql")
+	result, err = parser.ParseFromFile("test/test.sql")
 	if err != nil {
 		if e, ok := err.(Error); ok {
 			if e.Type != ErrorOpenFile && e.Type != ErrorReadFile {
@@ -91,9 +92,10 @@ func TestParseFromFile(t *testing.T) {
 TestParseFromString - unit test for parsing sql requests from string
 */
 func TestParseFromString(t *testing.T) {
+	var parser Parser
 	var input string
 	input = "-- ;;;;;;\n#Comment is her;e\n/*And; ne   xt; multi\nline com\nme;nt\n\n\n*/;;;;;;;;INSERT INTO mar/*COMMENT  IS  HERE TOO*/ket_data.instruments \n\n\t (id, symbol, name, lot_size, lot_step, lot_max, lot_min, base_currency, price_currency, stop_level, state_tick, state_minute, symbol_type, swap_long, swap_short, fee, digits, point) VALUES (736, 'MCO.N;', \"Moody\", 1, 1, 10000, 1, 'USD', '', 0.03, 'verifying', 'verifying', `Equities USA`, -1.13, -0.49, 0.1, 2, 0.01);INSERT INTO market_data.instruments (id, symbol, name, lot_size, lot_step, lot_max, lot_min, base_currency, price_currency, stop_level, state_tick, state_minute, symbol_type, swap_long, swap_short, fee, digits, point) VALUES (740, 'WDIG.DE', 'Wire Card', 1, 1, 10000, 1, 'EUR', '', 0.003, 'verifying', 'verifying', 'Equities DE', -3.08, -4.22, 0.1, 3, 0.001);"
-	result, err := ParseFromString(input)
+	result, err := parser.ParseFromString(input)
 	if err != nil {
 		if e, ok := err.(Error); ok {
 			if e.Type != ErrorOpenFile && e.Type != ErrorReadFile {
@@ -103,6 +105,59 @@ func TestParseFromString(t *testing.T) {
 			t.Error("Error: error type is not valid!")
 		}
 	}
+	result2, err := parser.ParseFromString(`INSERT INTO instruments (name, lot_size, id) VALUES ("SPA35#", 0, 111);`)
+	if err != nil {
+		if e, ok := err.(Error); ok {
+			if e.Type != ErrorOpenFile && e.Type != ErrorReadFile {
+				t.Error("Error: ", e.Message)
+			}
+		} else {
+			t.Error("Error: error type is not valid!")
+		}
+	}
+	result3, err := parser.ParseFromString(`INSERT INTO instruments (name, lot_size, id) VALUES ("SPA35--", 0, 111);`)
+	if err != nil {
+		if e, ok := err.(Error); ok {
+			if e.Type != ErrorOpenFile && e.Type != ErrorReadFile {
+				t.Error("Error: ", e.Message)
+			}
+		} else {
+			t.Error("Error: error type is not valid!")
+		}
+	}
+	result4, err := parser.ParseFromString(`INSERT INTO instruments (name, lot_size, id) VALUES ("/*SPA3*/5", 0, 111);`)
+	if err != nil {
+		if e, ok := err.(Error); ok {
+			if e.Type != ErrorOpenFile && e.Type != ErrorReadFile {
+				t.Error("Error: ", e.Message)
+			}
+		} else {
+			t.Error("Error: error type is not valid!")
+		}
+	}
+
+	result5, err := parser.ParseFromString(`INSERT INTO instruments (name, lot_size, id) VALUES ("/*SPA35", 0, 111);`)
+	if err != nil {
+		if e, ok := err.(Error); ok {
+			if e.Type != ErrorOpenFile && e.Type != ErrorReadFile {
+				t.Error("Error: ", e.Message)
+			}
+		} else {
+			t.Error("Error: error type is not valid!")
+		}
+	}
+
+	result6, err := parser.ParseFromString(`INSERT INTO instruments (name, lot_size, id) VALUES (/*"SPA35"*/, 0, 111);`)
+	if err != nil {
+		if e, ok := err.(Error); ok {
+			if e.Type != ErrorOpenFile && e.Type != ErrorReadFile {
+				t.Error("Error: ", e.Message)
+			}
+		} else {
+			t.Error("Error: error type is not valid!")
+		}
+	}
+
 	if len(result) == 0 {
 		t.Error("Error: Result is empty!")
 	}
@@ -113,6 +168,46 @@ func TestParseFromString(t *testing.T) {
 	if result[1] != "INSERT INTO market_data.instruments (id, symbol, name, lot_size, lot_step, lot_max, lot_min, base_currency, price_currency, stop_level, state_tick, state_minute, symbol_type, swap_long, swap_short, fee, digits, point) VALUES (740, 'WDIG.DE', 'Wire Card', 1, 1, 10000, 1, 'EUR', '', 0.003, 'verifying', 'verifying', 'Equities DE', -3.08, -4.22, 0.1, 3, 0.001);" {
 		t.Log(result[1])
 		t.Error("Wrong result[1]!")
+	}
+
+	if len(result2) == 0 {
+		t.Error("Error: Result is empty!")
+	}
+	if result2[0] != `INSERT INTO instruments (name, lot_size, id) VALUES ("SPA35#", 0, 111);` {
+		t.Log(result2[0])
+		t.Error("Wrong result2[0]!")
+	}
+
+	if len(result3) == 0 {
+		t.Error("Error: Result is empty!")
+	}
+	if result3[0] != `INSERT INTO instruments (name, lot_size, id) VALUES ("SPA35--", 0, 111);` {
+		t.Log(result3[0])
+		t.Error("Wrong result3[0]!")
+	}
+
+	if len(result4) == 0 {
+		t.Error("Error: Result is empty!")
+	}
+	if result4[0] != `INSERT INTO instruments (name, lot_size, id) VALUES ("/*SPA3*/5", 0, 111);` {
+		t.Log(result4[0])
+		t.Error("Wrong result4[0]!")
+	}
+
+	if len(result5) == 0 {
+		t.Error("Error: Result is empty!")
+	}
+	if result5[0] != `INSERT INTO instruments (name, lot_size, id) VALUES ("/*SPA35", 0, 111);` {
+		t.Log(result5[0])
+		t.Error("Wrong result5[0]!")
+	}
+
+	if len(result6) == 0 {
+		t.Error("Error: Result is empty!")
+	}
+	if result6[0] != `INSERT INTO instruments (name, lot_size, id) VALUES (, 0, 111);` {
+		t.Log(result6[0])
+		t.Error("Wrong result6[0]!")
 	}
 }
 

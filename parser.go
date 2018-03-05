@@ -89,26 +89,32 @@ func queryBuilder(text string, length int) []string {
 		char := string([]rune(text)[i])
 		// Check beginning the comment
 		if strings.EqualFold(char, "-") {
-			if firstMinus {
-				isComment = true
-				req = deleteLastSymbol(req)
-				firstMinus = false
-			} else {
-				firstMinus = true
+			if quote1%2 == 0 && quote2%2 == 0 && quote3%2 == 0 {
+				if firstMinus {
+					isComment = true
+					req = deleteLastSymbol(req)
+					firstMinus = false
+				} else {
+					firstMinus = true
+				}
 			}
 		} else {
 			firstMinus = false
 		}
 		if strings.EqualFold(char, "*") {
-			if firstSlash {
-				isMultiComment = true
-				req = deleteLastSymbol(req)
-				firstSlash = false
+			if quote1%2 == 0 && quote2%2 == 0 && quote3%2 == 0 {
+				if firstSlash {
+					isMultiComment = true
+					req = deleteLastSymbol(req)
+					firstSlash = false
+				}
+				firstStar = true
 			}
-			firstStar = true
 		}
 		if strings.EqualFold(char, "#") {
-			isComment = true
+			if quote1%2 == 0 && quote2%2 == 0 && quote3%2 == 0 {
+				isComment = true
+			}
 		}
 		// Write char into req, if string is not commented
 		if !isComment && !isMultiComment {
@@ -126,11 +132,13 @@ func queryBuilder(text string, length int) []string {
 		}
 		// Turn off comment
 		if strings.EqualFold(char, "/") {
-			if firstStar {
-				isMultiComment = false
-				firstStar = false
+			if quote1%2 == 0 && quote2%2 == 0 && quote3%2 == 0 {
+				if firstStar {
+					isMultiComment = false
+					firstStar = false
+				}
+				firstSlash = true
 			}
-			firstSlash = true
 		}
 
 		if isComment && char == "\n" {
