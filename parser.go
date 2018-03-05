@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"unicode/utf8"
 )
 
 const (
@@ -84,8 +85,8 @@ func (p *Parser) ParseFromString(requests string) ([]string, error) {
 func queryBuilder(text string, length int) []string {
 	var requests []string
 	var req string
-	// l := utf8.RuneCountInString(text)
-	for i := 0; i < length; i++ {
+	l := utf8.RuneCountInString(text)
+	for i := 0; i < l; i++ {
 		char := string([]rune(text)[i])
 		// Check beginning the comment
 		if strings.EqualFold(char, "-") {
