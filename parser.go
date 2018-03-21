@@ -15,9 +15,9 @@ const (
 )
 
 var (
-	quote1, quote2, quote3                                       int
-	isComment, isMultiComment, firstMinus, firstSlash, firstStar bool
-	buf                                                          string
+	quote1, quote2, quote3                                                               int
+	isComment, isMultiComment, isTrigger, firstMinus, firstSlash, firstStar, firstDollar bool
+	buf                                                                                  string
 )
 
 type Parser struct {
@@ -97,6 +97,22 @@ func queryBuilder(text string, length int) []string {
 		}
 		char := string(c)
 		// Check beginning the comment
+		if strings.EqualFold(char, "$") {
+			if quote1%2 == 0 && quote2%2 == 0 && quote3%2 == 0 {
+				if firstDollar {
+					isTrigger = true
+					firstDollar = false
+				} else {
+					firstDollar = true
+				}
+				if firstDollar && isTrigger {
+					isTrigger = false
+					firstDollar = false
+				}
+			}
+		} else {
+			firstDollar = false
+		}
 		if strings.EqualFold(char, "-") {
 			if quote1%2 == 0 && quote2%2 == 0 && quote3%2 == 0 {
 				if firstMinus {
@@ -149,12 +165,11 @@ func queryBuilder(text string, length int) []string {
 				firstSlash = true
 			}
 		}
-
 		if isComment && char == "\n" {
 			isComment = false
 		}
 		// Split request, if current char == ";" and no open quotes, no comments
-		if quote1%2 == 0 && quote2%2 == 0 && quote3%2 == 0 && !isComment && !isMultiComment {
+		if quote1%2 == 0 && quote2%2 == 0 && quote3%2 == 0 && !isComment && !isMultiComment && !isTrigger {
 			if strings.EqualFold(char, ";") {
 				requests = append(requests, buf+req)
 				buf = ""
